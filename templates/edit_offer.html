@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Offer - {{ offer.get('offer_description', 'N/A') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .form-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            /* Important for padding and width */
+            font-size: 0.95em;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-group input[type="checkbox"] {
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .form-actions {
+            margin-top: 20px;
+            display: flex;
+            /* Use flexbox for button alignment */
+            justify-content: space-between;
+            /* Puts space between button groups */
+            align-items: center;
+        }
+
+        .form-actions button,
+        .form-actions .btn-delete,
+        .form-actions .btn-cancel {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            text-decoration: none;
+            /* For anchor styled as button */
+            display: inline-block;
+            /* For anchor styled as button */
+        }
+
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+            margin-left: 10px;
+            /* Space from save button */
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .form-section-title {
+            font-size: 1.2em;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group label {
+            font-weight: normal;
+        }
+
+        .right-buttons {
+            /* Container for save and cancel */
+            display: flex;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Edit Offer: {{ offer.get('offer_id', 'N/A') }}</h1>
+    </div>
+
+    <div class="form-container">
+        <form method="POST" action="{{ url_for('edit_offer', offer_id=offer.get('offer_id')) }}" id="editOfferForm">
+            <div class="form-group">
+                <label for="offer_id_display">Offer ID (Read-only)</label>
+                <input type="text" id="offer_id_display" name="offer_id_display" value="{{ offer.get('offer_id', '') }}"
+                    readonly>
+            </div>
+            <div class="form-group">
+                <label for="merchant_id_display">Merchant ID (Read-only)</label>
+                <input type="text" id="merchant_id_display" name="merchant_id_display"
+                    value="{{ offer.get('merchant_id', '') }}" readonly>
+            </div>
+
+            <div class="form-section-title">Offer Details</div>
+            <div class="form-group">
+                <label for="original_offer_amount">Original Offer Amount (e.g., "7,5%" or "55 €")</label>
+                <input type="text" id="original_offer_amount" name="original_offer_amount"
+                    value="{{ offer.get('original_offer_amount', '') }}">
+            </div>
+            <div class="form-group">
+                <label for="offer_description">Offer Description</label>
+                <textarea id="offer_description"
+                    name="offer_description">{{ offer.get('offer_description', '') }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="imagined_cashback_code">Imagined Cashback Code</label>
+                <input type="text" id="imagined_cashback_code" name="imagined_cashback_code"
+                    value="{{ offer.get('imagined_cashback_code', '') }}">
+            </div>
+            <div class="form-group">
+                <label for="end_date">End Date (YYYY-MM-DD, leave blank if none)</label>
+                <input type="text" id="end_date" name="end_date" value="{{ offer.get('end_date', '') }}"
+                    placeholder="YYYY-MM-DD">
+            </div>
+
+            <div class="form-section-title">Production Status</div>
+            <div class="form-group">
+                <label for="available">
+                    <input type="checkbox" id="available" name="available" value="True" {% if
+                        offer_for_form.get('available_for_edit_form') %}checked{% endif %}>
+                    In Production (Available)
+                </label>
+                <small>Uncheck to set to Staging (not available). Default when editing is Staging.</small>
+            </div>
+
+            <div class="form-section-title">Conditions</div>
+            {% for col_name, condition_text in predefined_conditions_map.items() %}
+            <div class="form-group checkbox-group">
+                <label for="{{ col_name }}">
+                    <input type="checkbox" id="{{ col_name }}" name="{{ col_name }}" value="True" {% if
+                        offer.get(col_name) %}checked{% endif %}>
+                    {{ condition_text }}
+                </label>
+            </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <button type="button" class="btn-delete"
+                    onclick='confirmDelete({{ offer.get("offer_id", "") | tojson }})'>Delete Offer</button>
+                <div class="right-buttons">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                    <a href="{{ url_for('index', merchant_id=offer.get('merchant_id'), include_staging='true') }}"
+                        class="btn-cancel">Cancel</a>
+                </div>
+            </div>
+        </form>
+        <form method="POST" action="" id="deleteOfferForm" style="display: none;"></form>
+    </div>
+
+    <script>
+        function confirmDelete(offerId) {
+            if (confirm("Are you sure you want to delete this offer? This action is irreversible.")) {
+                const deleteForm = document.getElementById('deleteOfferForm');
+                if (deleteForm) {
+                    deleteForm.action = `/delete_offer/${offerId}`;
+                    deleteForm.submit();
+                } else {
+                    console.error("Error: Delete form with ID 'deleteOfferForm' not found.");
+                    alert("An error occurred: The delete form was not found. Please contact support.");
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

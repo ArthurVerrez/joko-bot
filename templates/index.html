@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offers Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="header">
+        <h1>Available Offers</h1>
+        <p>
+            <a href="{{ url_for('merchants_list') }}" style="color: #fff; margin-left: 20px; font-size: 0.9em;">Manage
+                Merchants</a>
+        </p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="filters-info">
+        <p>
+            <strong>Filters:</strong>
+            {% if filtered_merchant_id %}
+            Merchant ID: <code>{{ filtered_merchant_id }}</code> |
+            {% endif %}
+            {% if filtered_offer_id %}
+            Offer ID: <code>{{ filtered_offer_id }}</code> |
+            {% endif %}
+
+            Current View:
+            {% if include_staging %}
+            Showing All (Production & Staging) -
+            <a
+                href="{{ url_for('index', merchant_id=filtered_merchant_id, offer_id=filtered_offer_id, include_staging='false') }}">Show
+                Production Only</a>
+            {% else %}
+            Showing Production Only -
+            <a
+                href="{{ url_for('index', merchant_id=filtered_merchant_id, offer_id=filtered_offer_id, include_staging='true') }}">Include
+                Staging</a>
+            {% endif %}
+
+            {% if filtered_merchant_id or filtered_offer_id or include_staging %}
+            | <a href="{{ url_for('index') }}">Clear All Filters</a>
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="offers-grid-container">
+        {% if offers %}
+        {% for offer in offers %}
+        <div class="offer-card {% if not offer.is_available %}offer-staging{% endif %}">
+            <div class="offer-status-and-edit">
+                <div class="offer-status">
+                    {% if offer.is_available %}
+                    <span class="status-production">🟢 In Production</span>
+                    {% else %}
+                    <span class="status-staging">🟠 Staging</span>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('edit_offer', offer_id=offer.offer_id) }}" class="edit-button">Edit Offer</a>
+            </div>
+            <div class="offer-banner">
+                {% if offer.banner_img_url %}
+                <img src="{{ offer.banner_img_url }}" alt="{{ offer.merchant_name }} banner">
+                {% else %}
+                <div class="placeholder-banner"></div>
+                {% endif %}
+            </div>
+            <div class="offer-details">
+                <div class="offer-header">
+                    <div class="merchant-logo">
+                        {% if offer.merchant_image_url %}
+                        <img src="{{ offer.merchant_image_url }}" alt="{{ offer.merchant_name }} logo">
+                        {% else %}
+                        <div class="placeholder-logo">{{ offer.merchant_name[0] if offer.merchant_name else 'M' }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="merchant-info">
+                        <div class="merchant-name">{{ offer.merchant_name }}</div>
+                        {% if offer.merchant_days and offer.merchant_days != '' %}
+                        <div class="merchant-offer-days">{{ offer.merchant_days }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if offer.merchant_subtitle_display %}
+                <div class="merchant-subtitle">{{ offer.merchant_subtitle_display }}</div>
+                {% endif %}
+                <div class="offer-main-text">{{ offer.offer_description if offer.offer_description else 'Cashback offer'
+                    }}</div>
+
+                {% if offer.imagined_cashback_code and offer.imagined_cashback_code != '' %}
+                <div class="cashback-code">
+                    Code: <strong>{{ offer.imagined_cashback_code }}</strong>
+                </div>
+                {% endif %}
+
+                {% if offer.about_text_short %}
+                <div class="about-text-snippet">
+                    <strong>À propos de {{ offer.merchant_name }}:</strong>
+                    <p>{{ offer.about_text_short }}</p>
+                </div>
+                {% endif %}
+
+                {% if offer.active_conditions %}
+                <div class="offer-conditions">
+                    <ul>
+                        {% for condition_text in offer.active_conditions %}
+                        <li>{{ condition_text }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>No offers to display based on current filters or data files not found.</p>
+        {% endif %}
+    </div>
+</body>
+
+</html>

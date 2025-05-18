@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Edit' if merchant else 'Add' }} Merchant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .form-container {
+            max-width: 700px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="url"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 0.95em;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .form-actions button,
+        .form-actions .btn-cancel {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>{{ 'Edit Merchant: ' + merchant.merchant_name if merchant else 'Add New Merchant' }}</h1>
+    </div>
+
+    <div class="form-container">
+        <form method="POST"
+            action="{{ url_for('edit_merchant', merchant_id=merchant.merchant_id) if merchant else url_for('add_merchant') }}">
+            {% if merchant %}
+            <div class="form-group">
+                <label for="merchant_id_display">Merchant ID (Read-only)</label>
+                <input type="text" id="merchant_id_display" name="merchant_id_display"
+                    value="{{ merchant.get('merchant_id', '') }}" readonly>
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="merchant_name">Merchant Name*</label>
+                <input type="text" id="merchant_name" name="merchant_name"
+                    value="{{ merchant.get('merchant_name', '') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="banner_img_url">Banner Image URL</label>
+                <input type="url" id="banner_img_url" name="banner_img_url"
+                    value="{{ merchant.get('banner_img_url', '') }}" placeholder="https://example.com/banner.jpg">
+            </div>
+            <div class="form-group">
+                <label for="merchant_image_url">Merchant Logo URL</label>
+                <input type="url" id="merchant_image_url" name="merchant_image_url"
+                    value="{{ merchant.get('merchant_image_url', '') }}" placeholder="https://example.com/logo.png">
+            </div>
+            <div class="form-group">
+                <label for="merchant_days">Merchant Days (e.g., "14j", "1j", leave blank if none)</label>
+                <input type="text" id="merchant_days" name="merchant_days"
+                    value="{{ merchant.get('merchant_days', '') }}" placeholder="e.g., 7j">
+            </div>
+            <div class="form-group">
+                <label for="about_text">About Text</label>
+                <textarea id="about_text" name="about_text">{{ merchant.get('about_text', '') }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">{{ 'Save Changes' if merchant else 'Add Merchant' }}</button>
+                <a href="{{ url_for('merchants_list') }}" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

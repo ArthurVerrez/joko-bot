@@ -1,0 +1,49 @@
+offer_id,merchant_id,amount_ratio,original_offer_amount,offer_description,end_date,imagined_cashback_code,available,cond_no_cashback_giftcard,cond_specific,cond_has_validation_delay_info,cond_has_tracking_delay_info,cond_cashback_on_nett_amount,cond_no_cashback_if_cancelled_simple,cond_no_cashback_if_subscription_incomplete,cond_no_cashback_if_returned_or_cancelled,cond_cookies_must_be_accepted,cond_has_legal_warnings,cond_new_clients_only,cond_has_ineligible_products,cond_joko_codes_only_with_cashback,cond_has_cashback_validation_steps
+off_32c875ca,mer_30f8b50d,0.075,"7,5%",Web : Nouveau client,,SHEINNEW7,True,False,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_a24e1650,mer_30f8b50d,0.075,"7,5%",App SHEIN : Nouveau client,,,True,False,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_639a2a45,mer_30f8b50d,0.02,2%,Web : Client existant,,SHEINWEB2,False,False,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_9b7aa05d,mer_30f8b50d,0.01,1%,App SHEIN : Client existant,,,True,False,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_0197f2bc,mer_4957b28a,0.05,5%,Nouveau client,2025-05-31,BHMNEW5,True,False,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_a7ff239e,mer_4957b28a,0.025,"2,5%",Client existant,2025-05-31,,True,False,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_61b5e0a8,mer_16f3e98a,,55 €,Première ouverture d'un compte bancaire SG avec souscription des services essentiels Sobrio,2025-05-18,SGWELCOME55,True,False,True,True,True,False,False,True,False,True,True,True,False,True,False
+off_59b55573,mer_dd6a7352,0.04,4%,Coffrets,,FNACBOX4,True,False,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_0ddd5b12,mer_dd6a7352,0.02,2%,Jeux et jouets · GPS · Petit électro · Sport · Bricolage · Jardin · Téléphonie · Informatique,,,True,False,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_9cae5150,mer_dd6a7352,0.015,"1,5%",Photo · Autres · TV · Son,,,True,False,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_da8c1a25,mer_dd6a7352,0.01,1%,Consoles · Jeux vidéo · DVD · CD,,,True,False,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_6392e95c,mer_7bae030d,0.03,3%,Nouveaux clients,,MDMHOME3,True,True,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_eb047837,mer_7bae030d,0.02,2%,Anciens clients,,,True,True,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_5c793439,mer_1f6d5832,0.025,"2,5%",de cashback,,NARS25,True,True,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_a504f854,mer_937ee5fc,0.03,3%,de cashback,,,True,False,False,True,True,True,True,False,False,True,False,False,False,True,False
+off_d551a806,mer_45a8b963,0.1,10%,Nouveaux clients pro,2025-06-30,MANOPRO10,True,False,False,True,True,True,False,False,True,True,False,False,False,False,False
+off_1fe3c0d3,mer_45a8b963,0.05,5%,Nouveaux clients particuliers,2025-06-30,,True,False,False,True,True,True,False,False,True,True,False,False,False,False,False
+off_2d4dd025,mer_45a8b963,0.04,4%,Clients existants particuliers ‧ Clients existants pro,2025-06-30,,True,False,False,True,True,True,False,False,True,True,False,False,False,False,False
+off_424bcf16,mer_45a8b963,0.025,"2,5%",Code promo,2025-06-30,GETPROMO,True,False,False,True,True,True,False,False,True,True,False,False,False,False,False
+off_8bbd4e5f,mer_1b458f22,0.015,"1,5%",Produits hors promotions,,HMSTYLE,True,True,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_2eacb096,mer_1b458f22,0.005,"0,5%",Produits en promotion,,,True,True,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_9b8dad67,mer_904e2251,0.03,3%,Nouveau client,,NOTINO3NEW,False,False,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_08d69a69,mer_904e2251,0.015,"1,5%",Client existant,,,True,False,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_d088d47a,mer_a5e14907,0.04,4%,Hébergement,,HOTELSTAY4,True,False,False,True,True,True,True,False,False,True,False,False,True,True,False
+off_47b4be42,mer_a5e14907,0.03,3%,Voiture,,,True,False,False,True,True,True,True,False,False,True,False,False,True,True,False
+off_a3474c6a,mer_56a85c97,0.04,4%,Hôtel,,EXPEDIAHOTEL,True,False,False,True,True,True,True,False,False,True,False,False,False,True,False
+off_7c403b79,mer_56a85c97,0.035,"3,5%",Activité · Voiture,,,True,False,False,True,True,True,True,False,False,True,False,False,False,True,False
+off_4b2ae428,mer_56a85c97,0.03,3%,Location de vacances,,,True,False,False,True,True,True,True,False,False,True,False,False,False,True,False
+off_2912d442,mer_56a85c97,0.018,"1,8%",Formule,,,True,False,False,True,True,True,True,False,False,True,False,False,False,True,False
+off_27ebfca6,mer_e61dd35b,0.04,4%,de cashback,2025-05-20,DYSONCLEAN4,False,False,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_3fe6d09a,mer_b20aa3f4,0.05,5%,Coffret beauté · Nouveau client  ‧ Coffret du black friday,,LOOKNEW5,True,True,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_405b72a2,mer_b20aa3f4,0.025,"2,5%",Client existant,,,True,True,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_433ed379,mer_b20aa3f4,0.015,"1,5%",Nouveau client : Calendrier de l'avent beauté,,,True,True,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_39addbd9,mer_b20aa3f4,0.01,1%,Technologie ‧ Défaut · Code promo,,LFTECH1,True,True,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_b3d52069,mer_b20aa3f4,0.01,1%,Client existant : Calendrier de l'avent beauté,,,True,True,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_e4688bb8,mer_3512969b,0.075,"7,5%",Slushi · Autre,2025-05-19,NINJA75,True,False,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_f9349eee,mer_f6638b5d,0.03,3%,Produits hors promotions,,COURIRSPORT3,False,False,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_91913162,mer_f6638b5d,0.0139999999999999,"1,4%",Produits en promotion,,,True,False,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_cc415f33,mer_f6638b5d,0.005,"0,5%",Produits marketplace,,,True,False,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_b2548ab5,mer_2f5acf68,0.005,"0,5%",Billet,,SNCFTICKET,True,False,False,True,True,True,True,False,False,True,False,False,False,True,True
+off_c0fec3a3,mer_8347958f,,35 €,de cashback,2025-05-24,REVOLUT35,True,False,False,True,True,False,False,True,False,True,True,False,False,True,False
+off_0030edb6,mer_ee6963e4,0.03,3%,Nouveau client,,STRADNEW3,True,False,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_5ccafe4a,mer_ee6963e4,0.025,"2,5%",Client existant,,,True,False,False,True,True,True,False,False,True,True,False,False,False,True,False
+off_74ebfc08,mer_87b59a85,0.06,6%,de cashback,,SHISEIDO6,True,True,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_d5e81928,mer_a8b9ffd5,0.08,8%,Nouveau client,2025-05-25,YVESNEW8,True,True,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_33714b0c,mer_a8b9ffd5,0.05,5%,Client existant,2025-05-25,TESTING123,True,True,False,True,True,True,True,False,True,True,False,False,True,True,False
+off_e04f8e82,mer_a932d18f,0.03,3%,de cashback,,FOOTL3,True,False,False,True,True,True,False,False,True,True,False,False,True,True,False
+off_e2af118d,mer_30f8b50d,,20€,This is a test description,,JAJAJNJNJSNSS,False,True,True,False,False,False,False,False,False,False,False,False,False,False,False

@@ -18,13 +18,31 @@ import re
 from dotenv import load_dotenv
 import hmac
 import hashlib
+from src.notion.client import NotionClient
+from src.llm.client import LLMClient
 
 app = Flask(__name__)
 app.secret_key = "your_very_secret_key_for_everything"
 
 # Load environment variables from .env at the root of ./app
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
-NOTION_VERIFICATION_TOKEN = os.getenv("NOTION_INTEGRATION_SECRET")
+NOTION_API_KEY = os.getenv("NOTION_API_KEY")  # For webhook verification
+NOTION_INTEGRATION_SECRET = os.getenv(
+    "NOTION_INTERNAL_INTEGRATION_SECRET"
+)  # For API interactions
+
+if not NOTION_API_KEY:
+    raise ValueError("NOTION_API_KEY environment variable is not set")
+if not NOTION_INTEGRATION_SECRET:
+    raise ValueError(
+        "NOTION_INTERNAL_INTEGRATION_SECRET environment variable is not set"
+    )
+
+# Initialize Notion client with integration secret
+notion_client = NotionClient(api_key=NOTION_INTEGRATION_SECRET)
+
+# Initialize LLM Client
+llm_client = LLMClient()
 
 # --- Configuration ---
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
@@ -717,32 +735,211 @@ def add_offer():
 @app.route("/notion-webhook", methods=["POST"])
 def notion_webhook():
     data = request.get_json()
-    # Step 1: Handle verification
-    if data and "verification_token" in data:
-        verification_token = data["verification_token"]
-        print("Received Notion verification token:", verification_token)
-        # You may want to store this token securely for future validation
+    if not data:
+        abort(400, "Request body must be JSON")
+
+    # Step 1: Handle verification (Notion might send this for webhook setup)
+    if "challenge" in data:
+        print("Received Notion verification challenge:", data["challenge"])
+        return jsonify({"challenge": data["challenge"]})
+
+    # Legacy verification (if still used, though challenge is more common now)
+    if "verification_token" in data:
+        print("Received Notion verification token:", data["verification_token"])
         return "", 200
 
     # Step 2: Validate signature (recommended)
-    signature = request.headers.get("X-Notion-Signature")
-    if not signature:
-        abort(400, "Missing Notion signature header")
-    if not NOTION_VERIFICATION_TOKEN:
-        abort(500, "Notion verification token not set in environment")
-    calculated = (
-        "sha256="
-        + hmac.new(
-            NOTION_VERIFICATION_TOKEN.encode(), request.data, hashlib.sha256
-        ).hexdigest()
-    )
-    if not hmac.compare_digest(calculated, signature):
+    signature = request.headers.get("X-Notion-Signature-V2")  # V2 is common
+    timestamp = request.headers.get("X-Notion-Request-Timestamp")
+
+    if not signature or not timestamp:
+        # Fallback to V1 if V2 headers are not present
+        signature = request.headers.get("X-Notion-Signature")  # Original V1 header
+        if not signature:
+            print("Missing Notion signature header (V1 or V2)")
+            abort(400, "Missing Notion signature header")
+        # For V1, timestamp is not part of signature base string construction
+        message = request.data
+        secret = NOTION_API_KEY  # Webhook secret
+    else:
+        # V2 Signature
+        message = f"{timestamp}:{request.data.decode('utf-8')}".encode("utf-8")
+        secret = NOTION_API_KEY  # Webhook secret
+
+    if not secret:
+        print("Notion API key (webhook secret) not set in environment")
+        abort(500, "Notion API key (webhook secret) not set in environment")
+
+    calculated_signature = hmac.new(
+        secret.encode(), message, hashlib.sha256
+    ).hexdigest()
+
+    # For V2, the signature header might look like "v1=actual_signature_hex"
+    # For V1, it's just the hex string.
+    actual_signature_to_compare = signature.split("=")[-1]
+
+    if not hmac.compare_digest(calculated_signature, actual_signature_to_compare):
+        print(
+            f"Invalid signature. Calculated: {calculated_signature}, Received: {actual_signature_to_compare}"
+        )
         abort(401, "Invalid signature")
 
     # Step 3: Handle the event payload
-    print("Received Notion event:", data)
-    # Do your processing here (e.g., update your DB, trigger actions, etc.)
-    return jsonify({"received": True})
+    print(
+        "Received Notion event (after signature validation):",
+        json.dumps(data, indent=2),
+    )
+
+    event_type = data.get("type")
+    page_id = data.get("event", {}).get("id")  # Common structure for page events
+
+    # For some events, page_id might be nested differently, e.g. inside 'data' or 'entity'
+    if not page_id and data.get("entity"):  # From previous logs
+        page_id = data.get("entity", {}).get("id")
+
+    # If it's a page related event and we have a page_id
+    if page_id and (
+        event_type == "page.created"
+        or event_type == "page.updated"
+        or event_type == "page.content_updated"
+        or "page" in data.get("entity", {}).get("type", "")
+    ):
+        print(f"Processing event for page_id: {page_id}")
+
+        current_status = notion_client.get_page_status(page_id)
+        print(f"Current 'Joko Bot - Status' for page {page_id}: {current_status}")
+
+        if current_status == "Ready for analysis":
+            print(
+                f"Status is 'Ready for analysis'. Proceeding with processing for page {page_id}."
+            )
+            try:
+                # 1. Update status to "In progress"
+                notion_client.update_page_status(page_id, "In progress")
+                print(f"Updated status to 'In progress' for page {page_id}.")
+
+                # 2. Fetch page details and content
+                page_details = notion_client.get_page(page_id)
+                page_content_blocks = notion_client.get_page_content(page_id)
+                page_markdown_content = notion_client.notion_blocks_to_markdown(
+                    page_content_blocks
+                )
+
+                # Prepare properties for LLM (simple string representation)
+                properties_for_llm = {
+                    prop: str(val)
+                    for prop, val in page_details.get("properties", {}).items()
+                }
+
+                # 3. Prepare LLM prompt
+                system_prompt = f"""
+Your task is to analyze the provided Notion page content and its properties to extract structured information about a merchant and their offers. 
+Format your output as a JSON object conforming to the following schema. The source of information is the Notion page, not an email.
+
+JSON Schema:
+```json
+{{
+  "merchant": {{
+    "name": "string (REQUIRED - The name of the merchant, e.g., 'SHEIN', 'New Local Bakery')",
+    "additional_details": {{
+      "about_text_from_notion_page": "string (Optional - Descriptive text about the merchant if found on the page)",
+      "banner_img_url_from_notion_page": "string (Optional - URL for a banner image if found on the page)",
+      "merchant_image_url_from_notion_page": "string (Optional - Logo URL if found on the page)",
+      "merchant_days_hint_from_notion_page": "string (Optional - Textual hint for validation period if found on the page)"
+    }}
+  }},
+  "offers": [
+    {{
+      "offer_value_statement_from_notion_page": "string (REQUIRED - The exact offer value as stated on the page, e.g., '7.5% cashback', '55 € bonus')",
+      "additional_details": {{
+        "offer_description_text_from_notion_page": "string (Optional - Description of the offer if found on the page)",
+        "end_date_text_from_notion_page": "string (Optional - Offer expiry date as text if found on the page)",
+        "imagined_cashback_code_text_from_notion_page": "string (Optional - Promo code if mentioned on the page)",
+        "availability_hint_from_notion_page": "string (Optional - Text indicating if offer is not for immediate publishing if found on the page)",
+        "conditions_list_text_from_notion_page": [
+          "string (A list of individual conditions stated on the page)"
+        ]
+      }}
+    }}
+  ]
+}}
+```
+
+Ensure the output is ONLY the JSON object, without any surrounding text or explanations.
+"""
+                user_content = f"Page Properties:\n{json.dumps(properties_for_llm, indent=2)}\n\nPage Content (Markdown):\n{page_markdown_content}"
+
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content},
+                ]
+
+                print(f"Sending data to LLM for page {page_id}...")
+                llm_response = llm_client.run_completion(
+                    messages=messages,
+                    model="gemini/gemini-2.5-flash-preview-04-17",  # Or your preferred model
+                    response_format={"type": "json_object"},
+                )
+
+                if (
+                    llm_response
+                    and llm_response.choices
+                    and llm_response.choices[0].message.content
+                ):
+                    extracted_json_str = llm_response.choices[0].message.content
+                    print(f"LLM Response for page {page_id}:\n{extracted_json_str}")
+                    try:
+                        # Validate if it's proper JSON, though LLM should ensure this in JSON mode
+                        parsed_json = json.loads(extracted_json_str)
+                        # 4. Append LLM output to page
+                        notion_client.append_code_block_to_page(
+                            page_id, json.dumps(parsed_json, indent=2), language="json"
+                        )
+                        print(f"Appended LLM JSON to page {page_id}.")
+
+                        # 5. Update status to "Done"
+                        notion_client.update_page_status(page_id, "Done")
+                        print(f"Updated status to 'Done' for page {page_id}.")
+                    except json.JSONDecodeError as json_e:
+                        print(
+                            f"LLM output was not valid JSON for page {page_id}: {json_e}. Output:\n{extracted_json_str}"
+                        )
+                        # Optionally, update status to an error state here
+                        notion_client.update_page_status(
+                            page_id, "Error Processing"
+                        )  # Example error status
+                else:
+                    print(f"LLM did not return expected content for page {page_id}.")
+                    notion_client.update_page_status(
+                        page_id, "Error Processing"
+                    )  # Example error status
+
+            except Exception as e:
+                print(f"Error during processing for page {page_id}: {e}")
+                if hasattr(e, "response") and e.response:
+                    print(f"Error Response: {e.response.text}")
+                # Attempt to set status to Error Processing if something went wrong
+                try:
+                    notion_client.update_page_status(page_id, "Error Processing")
+                except Exception as e_status:
+                    print(
+                        f"Failed to update status to Error Processing for page {page_id}: {e_status}"
+                    )
+        elif current_status:
+            print(
+                f"Page {page_id} status is '{current_status}', not 'Ready for analysis'. Skipping."
+            )
+        else:
+            print(
+                f"Could not determine status for page {page_id} or status is not set. Skipping."
+            )
+    else:
+        print("Event is not a page event or page_id is missing. Skipping processing.")
+        # print(f"Debug: event_type: {event_type}, page_id: {page_id}, data.get('entity',{}).get('type', '"): {data.get('entity',{}).get('type', '')}")
+
+    return jsonify(
+        {"received": True, "processed_page_id": page_id if page_id else None}
+    )
 
 
 if __name__ == "__main__":
